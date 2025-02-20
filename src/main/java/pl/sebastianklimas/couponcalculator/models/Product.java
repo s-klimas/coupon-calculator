@@ -1,7 +1,5 @@
 package pl.sebastianklimas.couponcalculator.models;
 
-import java.util.Objects;
-
 public class Product {
     private double price;
     private String name;
