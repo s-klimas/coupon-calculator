@@ -88,7 +88,7 @@ public class APIService {
         }
     }
 
-    public static List<List<BasketCoupon>> matchCouponsToBaskets(List<Coupon> coupons, List<List<Basket>> allCombinationsBaskets) {
+    private static List<List<BasketCoupon>> matchCouponsToBaskets(List<Coupon> coupons, List<List<Basket>> allCombinationsBaskets) {
         List<List<BasketCoupon>> result = new ArrayList<>();
 
         for (List<Basket> basketCombination : allCombinationsBaskets) {
