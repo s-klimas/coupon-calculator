@@ -30,7 +30,7 @@ public class APIService {
                 .sorted(Comparator.comparing(list -> list.stream()
                         .mapToDouble(BasketCoupon::getFinalSum)
                         .sum()))
-                .limit(10)
+                .limit(3)
                 .toList();
 
         return new FinalShoppingListDto(bcSorted);
