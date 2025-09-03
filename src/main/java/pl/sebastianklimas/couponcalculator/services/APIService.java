@@ -3,18 +3,31 @@ package pl.sebastianklimas.couponcalculator.services;
 import org.springframework.stereotype.Service;
 import pl.sebastianklimas.couponcalculator.models.*;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Service
 public class APIService {
     public FinalShoppingListDto calculateShoppingList(List<Product> products, List<Coupon> coupons) {
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " Request received");
+
         List<Set<Product>> subset = sublistGenerator(products);
+
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " Sublist created");
 
         CouponsProducts couponsProducts = new CouponsProducts();
 
         subset.forEach(list -> coupons.forEach(coupon -> couponsProducts.addEntryToMap(coupon, list)));
 
+        System.out.println(subset.size());
+
         List<List<Set<Product>>> allCombinations = findAllCombinations(new HashSet<>(products), subset, coupons.size());
+
+        System.out.println(allCombinations.size());
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " All combinations created");
 
         List<List<Basket>> allCombinationsBaskets = allCombinations.stream()
                 .map(list -> list.stream()
@@ -22,9 +35,15 @@ public class APIService {
                         .toList())
                 .toList();
 
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " All combinations baskets created");
+
         List<List<BasketCoupon>> bcCombinations = matchCouponsToBaskets(coupons, allCombinationsBaskets);
 
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " Matched coupons to baskets");
+
         bcCombinations.forEach(list -> list.forEach(BasketCoupon::calculateFinalSum));
+
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " Calculated final sums");
 
         List<List<BasketCoupon>> bcSorted = bcCombinations.stream()
                 .sorted(Comparator.comparing(list -> list.stream()
@@ -32,6 +51,8 @@ public class APIService {
                         .sum()))
                 .limit(5)
                 .toList();
+
+        System.out.println(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " Sorted and ready to return");
 
         return new FinalShoppingListDto(bcSorted);
     }
@@ -52,81 +73,93 @@ public class APIService {
         }
         return result;
     }
+
     private List<List<Set<Product>>> findAllCombinations(Set<Product> fullList,
                                                          List<Set<Product>> subsets,
                                                          int maxSubsets) {
-        List<List<Set<Product>>> result = new ArrayList<>();
-        generateAllCombinations(subsets, fullList, maxSubsets, new ArrayList<>(), 0, new HashSet<>(), result);
-        return result;
+        return generateAllCombinations(subsets, fullList, maxSubsets,
+                new ArrayList<>(), 0, new HashSet<>());
     }
-    private void generateAllCombinations(List<Set<Product>> subsets,
-                                         Set<Product> fullSet,
-                                         int maxSubsets,
-                                         List<Set<Product>> currentCombination,
-                                         int startIndex,
-                                         Set<Product> usedElements,
-                                         List<List<Set<Product>>> result) {
-        if (currentCombination.size() > maxSubsets) return;
+
+    private List<List<Set<Product>>> generateAllCombinations(List<Set<Product>> subsets,
+                                                             Set<Product> fullSet,
+                                                             int maxSubsets,
+                                                             List<Set<Product>> currentCombination,
+                                                             int startIndex,
+                                                             Set<Product> usedElements) {
+        if (currentCombination.size() > maxSubsets) return Collections.emptyList();
         if (usedElements.equals(fullSet)) {
-            result.add(new ArrayList<>(currentCombination));
-            return;
-        }
-        for (int i = startIndex; i < subsets.size(); i++) {
-            Set<Product> subset = subsets.get(i);
-
-            Set<Product> intersection = new HashSet<>(subset);
-            intersection.retainAll(usedElements);
-            if (!intersection.isEmpty()) continue;
-
-            currentCombination.add(subset);
-            usedElements.addAll(subset);
-
-            generateAllCombinations(subsets, fullSet, maxSubsets, currentCombination, i + 1, usedElements, result);
-
-            currentCombination.remove(currentCombination.size() - 1);
-            usedElements.removeAll(subset);
-        }
-    }
-
-    private static List<List<BasketCoupon>> matchCouponsToBaskets(List<Coupon> coupons, List<List<Basket>> allCombinationsBaskets) {
-        List<List<BasketCoupon>> result = new ArrayList<>();
-
-        for (List<Basket> basketCombination : allCombinationsBaskets) {
-            List<List<BasketCoupon>> combinations = generateCombinations(basketCombination, coupons);
-            result.addAll(combinations);
+            return List.of(new ArrayList<>(currentCombination));
         }
 
-        return result;
+        return subsets.subList(startIndex, subsets.size())
+                .parallelStream()
+                .flatMap(subset -> {
+                    Set<Product> intersection = new HashSet<>(subset);
+                    intersection.retainAll(usedElements);
+                    if (!intersection.isEmpty()) {
+                        return Stream.empty();
+                    }
+
+                    List<Set<Product>> newCombination = new ArrayList<>(currentCombination);
+                    newCombination.add(subset);
+
+                    Set<Product> newUsed = new HashSet<>(usedElements);
+                    newUsed.addAll(subset);
+
+                    return generateAllCombinations(subsets, fullSet, maxSubsets,
+                            newCombination, startIndex + 1, newUsed)
+                            .stream();
+                })
+                .toList();
     }
 
-    private static List<List<BasketCoupon>> generateCombinations(List<Basket> baskets, List<Coupon> coupons) {
-        List<List<BasketCoupon>> result = new ArrayList<>();
-        backtrack(baskets, coupons, 0, new ArrayList<>(), new HashSet<>(), result);
-        return result;
+    private static List<List<BasketCoupon>> matchCouponsToBaskets(List<Coupon> coupons,
+                                                                  List<List<Basket>> allCombinationsBaskets) {
+        return allCombinationsBaskets
+                .parallelStream()
+                .flatMap(basketCombination ->
+                        generateCombinations(basketCombination, coupons).stream())
+                .toList();
     }
 
-    private static void backtrack(List<Basket> baskets, List<Coupon> coupons, int basketIndex,
-                                  List<BasketCoupon> currentCombination, Set<Integer> usedCoupons,
-                                  List<List<BasketCoupon>> result) {
+    private static List<List<BasketCoupon>> generateCombinations(List<Basket> baskets,
+                                                                 List<Coupon> coupons) {
+        return backtrack(baskets, coupons, 0, new ArrayList<>(), new HashSet<>());
+    }
+
+    private static List<List<BasketCoupon>> backtrack(List<Basket> baskets,
+                                                      List<Coupon> coupons,
+                                                      int basketIndex,
+                                                      List<BasketCoupon> currentCombination,
+                                                      Set<Integer> usedCoupons) {
         if (basketIndex == baskets.size()) {
-            result.add(new ArrayList<>(currentCombination));
-            return;
+            return List.of(new ArrayList<>(currentCombination));
         }
 
         Basket currentBasket = baskets.get(basketIndex);
 
-        currentCombination.add(new BasketCoupon(currentBasket, null));
-        backtrack(baskets, coupons, basketIndex + 1, currentCombination, usedCoupons, result);
-        currentCombination.remove(currentCombination.size() - 1);
+        Stream<List<BasketCoupon>> withoutCouponStream = Stream.of(currentBasket)
+                .map(b -> {
+                    List<BasketCoupon> newCombination = new ArrayList<>(currentCombination);
+                    newCombination.add(new BasketCoupon(b, null));
+                    return backtrack(baskets, coupons, basketIndex + 1, newCombination, new HashSet<>(usedCoupons));
+                })
+                .flatMap(List::stream);
 
-        for (int i = 0; i < coupons.size(); i++) {
-            if (usedCoupons.contains(i)) continue;
+        Stream<List<BasketCoupon>> withCouponStream =
+                IntStream.range(0, coupons.size())
+                        .parallel()
+                        .filter(i -> !usedCoupons.contains(i))
+                        .mapToObj(i -> {
+                            List<BasketCoupon> newCombination = new ArrayList<>(currentCombination);
+                            newCombination.add(new BasketCoupon(currentBasket, coupons.get(i)));
+                            Set<Integer> newUsed = new HashSet<>(usedCoupons);
+                            newUsed.add(i);
+                            return backtrack(baskets, coupons, basketIndex + 1, newCombination, newUsed);
+                        })
+                        .flatMap(List::stream);
 
-            usedCoupons.add(i);
-            currentCombination.add(new BasketCoupon(currentBasket, coupons.get(i)));
-            backtrack(baskets, coupons, basketIndex + 1, currentCombination, usedCoupons, result);
-            currentCombination.remove(currentCombination.size() - 1);
-            usedCoupons.remove(i);
-        }
+        return Stream.concat(withoutCouponStream, withCouponStream).toList();
     }
 }

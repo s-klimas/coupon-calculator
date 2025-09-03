@@ -18,7 +18,7 @@ public class APIController {
         this.apiService = apiService;
     }
 
-//    @CrossOrigin(origins = "*")
+    @CrossOrigin(origins = "*")
     @PostMapping("/calculate-shopping-list")
     public ResponseEntity<FinalShoppingListDto> getListOfProductsAndCoupons(@RequestBody InputLists inputLists) {
         return ResponseEntity.ok(apiService.calculateShoppingList(inputLists.getProducts(), inputLists.getCoupons()));
