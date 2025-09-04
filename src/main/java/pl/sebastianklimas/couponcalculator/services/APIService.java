@@ -14,7 +14,48 @@ import java.util.stream.Stream;
 
 @Service
 public class APIService {
-    public FinalShoppingListDto calculateShoppingList(List<Product> products, List<Coupon> coupons) {
+    public List<FullShoppingListWithCoupon> splitLists(List<Product> products, List<Coupon> coupons) {
+        final int MAX_SIZE_PRODUCT_BUNCHES = 8;
+        final int MAX_SIZE_COUPON_BUNCHES = 4;
+
+        if (products.isEmpty() || coupons.isEmpty()) return new ArrayList<>();
+
+        List<Product> sortedProducts = products.stream().sorted(Comparator.comparing(Product::getPrice).reversed()).toList();
+        List<Coupon> sortedCoupons = new ArrayList<>();
+        coupons.stream().sorted(Comparator.comparing(Coupon::getPercentDiscount).reversed()).forEach(sortedCoupons::add);
+
+        List<FullShoppingListWithCoupon> fullShoppingListWithCoupons = new ArrayList<>();
+
+        for (int i = 0; i <= (sortedProducts.size() - 1) / MAX_SIZE_PRODUCT_BUNCHES; i++) {
+            int fromProducts = Math.min(i * MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size() - 1);
+            int toProducts = Math.min(fromProducts + MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size());
+            List<Product> smallProductList = sortedProducts.subList(fromProducts, toProducts);
+
+            System.out.println("(" + fromProducts + "," + toProducts + ")");
+
+            int fromCoupons = 0;
+            int toCoupons = Math.min(MAX_SIZE_COUPON_BUNCHES, sortedCoupons.size());
+            List<Coupon> smallCouponList = sortedCoupons.subList(fromCoupons, toCoupons);
+
+            smallProductList.forEach(System.out::println);
+            System.out.println();
+            smallCouponList.forEach(System.out::println);
+            System.out.println();
+            System.out.println();
+
+//            FullShoppingListWithCoupon shoppingListDto = new FullShoppingListWithCoupon();
+            FullShoppingListWithCoupon shoppingListDto = calculateShoppingList(smallProductList, smallCouponList);
+
+            fullShoppingListWithCoupons.add(shoppingListDto);
+
+            List<Coupon> allUsedCoupons = shoppingListDto.getAllUsedCoupons();
+            sortedCoupons.removeAll(allUsedCoupons);
+        }
+
+        return fullShoppingListWithCoupons;
+    }
+
+    private FullShoppingListWithCoupon calculateShoppingList(List<Product> products, List<Coupon> coupons) {
         AllSubsetsList allSubsetsList = generateListOfAllSubsets(products);
 
         List<FullShoppingList> allCombinations = findAllCombinations(new HashSet<>(products), allSubsetsList, coupons.size());
@@ -34,12 +75,12 @@ public class APIService {
         });
 
         PriorityQueue<FullShoppingListWithCoupon> top5 = new PriorityQueue<>(
-                5,
+                1,
                 Comparator.comparingDouble((FullShoppingListWithCoupon f) -> f.getTotalPrice().doubleValue()).reversed()
         );
 
         for (FullShoppingListWithCoupon combination : bcCombinations) {
-            if (top5.size() < 5) {
+            if (top5.isEmpty()) {
                 top5.offer(combination);
             } else {
                 BigDecimal currentSum = combination.getTotalPrice();
@@ -57,7 +98,7 @@ public class APIService {
         bcSorted.sort(Comparator.comparing(list ->
                 list.getTotalPrice().doubleValue()));
 
-        return new FinalShoppingListDto(bcSorted);
+        return bcSorted.get(0);
     }
 
     private AllSubsetsList generateListOfAllSubsets(List<Product> products) {

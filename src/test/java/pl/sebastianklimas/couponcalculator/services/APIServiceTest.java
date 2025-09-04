@@ -31,15 +31,16 @@ class APIServiceTest {
         List<Coupon> coupons = List.of(coupon1, coupon2, coupon3);
 
         // when
-        FinalShoppingListDto result = apiService.calculateShoppingList(products, coupons);
+        List<FullShoppingListWithCoupon> result = apiService.splitLists(products, coupons);
 
         // then
+        assertEquals(1, result.size());
         assertNotNull(result);
-        assertFalse(result.getShoppingListsWithCoupons().isEmpty());
-        List<FullShoppingListWithCoupon> basketCoupons = result.getShoppingListsWithCoupons();
+        assertFalse(result.get(0).getBasketCoupons().isEmpty());
+        List<BasketCoupon> basketCoupons = result.get(0).getBasketCoupons();
         for (int i = 0; i < basketCoupons.size() - 1; i++) {
-            double sumCurrent = basketCoupons.get(i).getBasketCoupons().stream().mapToDouble(bc -> bc.getFinalSum().doubleValue()).sum();
-            double sumNext = basketCoupons.get(i + 1).getBasketCoupons().stream().mapToDouble(bc -> bc.getFinalSum().doubleValue()).sum();
+            double sumCurrent = basketCoupons.stream().mapToDouble(bc -> bc.getFinalSum().doubleValue()).sum();
+            double sumNext = basketCoupons.stream().mapToDouble(bc -> bc.getFinalSum().doubleValue()).sum();
             assertTrue(sumCurrent <= sumNext, "Lists are not sorted correctly");
         }
     }

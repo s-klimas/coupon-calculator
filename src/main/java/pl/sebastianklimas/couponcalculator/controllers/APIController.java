@@ -7,7 +7,10 @@ import pl.sebastianklimas.couponcalculator.exceptions.TooManyCouponsException;
 import pl.sebastianklimas.couponcalculator.exceptions.TooManyProductsException;
 import pl.sebastianklimas.couponcalculator.models.ApiRequest;
 import pl.sebastianklimas.couponcalculator.models.FinalShoppingListDto;
+import pl.sebastianklimas.couponcalculator.models.FullShoppingListWithCoupon;
 import pl.sebastianklimas.couponcalculator.services.APIService;
+
+import java.util.List;
 
 @RestController
 public class APIController {
@@ -20,11 +23,11 @@ public class APIController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/calculate-shopping-list")
-    public ResponseEntity<FinalShoppingListDto> getListOfProductsAndCoupons(@RequestBody ApiRequest inputLists) {
-        if(inputLists.getProducts().size() > 8) throw new TooManyProductsException("Too many products, max 8 products are allowed");
-        if(inputLists.getCoupons().size() > 4) throw new TooManyCouponsException("Too many coupons, max 4 coupons are allowed");
+    public ResponseEntity<List<FullShoppingListWithCoupon>> getListOfProductsAndCoupons(@RequestBody ApiRequest inputLists) {
+//        if(inputLists.getProducts().size() > 8) throw new TooManyProductsException("Too many products, max 8 products are allowed");
+//        if(inputLists.getCoupons().size() > 4) throw new TooManyCouponsException("Too many coupons, max 4 coupons are allowed");
 
-        return ResponseEntity.ok(apiService.calculateShoppingList(inputLists.getProducts(), inputLists.getCoupons()));
+        return ResponseEntity.ok(apiService.splitLists(inputLists.getProducts(), inputLists.getCoupons()));
     }
 
     @ExceptionHandler(TooManyProductsException.class)
