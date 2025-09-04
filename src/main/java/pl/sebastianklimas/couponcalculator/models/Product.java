@@ -1,22 +1,24 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import java.math.BigDecimal;
+
 public class Product {
-    private double price;
+    private BigDecimal price;
     private String name;
 
     public Product() {
     }
 
-    public Product(double price, String name) {
+    public Product(BigDecimal price, String name) {
         this.price = price;
         this.name = name;
     }
 
-    public double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -29,7 +31,10 @@ public class Product {
     }
 
     @Override
+//    public String toString() {
+//        return "Product - " + name + " - " + price + "PLN";
+//    }
     public String toString() {
-        return "Product - " + name + " - " + price + "PLN";
+        return name;
     }
 }

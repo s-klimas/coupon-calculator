@@ -3,17 +3,13 @@ package pl.sebastianklimas.couponcalculator.models;
 import java.util.List;
 
 public class FinalShoppingListDto {
-    private List<List<BasketCoupon>> shoppingList;
+    private List<FullShoppingListWithCoupon> shoppingListsWithCoupons;
 
-    public FinalShoppingListDto(List<List<BasketCoupon>> shoppingList) {
-        this.shoppingList = shoppingList;
+    public FinalShoppingListDto(List<FullShoppingListWithCoupon> shoppingList) {
+        this.shoppingListsWithCoupons = shoppingList;
     }
 
-    public List<List<BasketCoupon>> getShoppingList() {
-        return shoppingList;
-    }
-
-    public void setShoppingList(List<List<BasketCoupon>> shoppingList) {
-        this.shoppingList = shoppingList;
+    public List<FullShoppingListWithCoupon> getShoppingListsWithCoupons() {
+        return shoppingListsWithCoupons;
     }
 }

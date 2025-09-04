@@ -5,8 +5,8 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import pl.sebastianklimas.couponcalculator.models.ApiRequest;
 import pl.sebastianklimas.couponcalculator.models.FinalShoppingListDto;
-import pl.sebastianklimas.couponcalculator.models.InputLists;
 import pl.sebastianklimas.couponcalculator.services.APIService;
 
 @RestController
@@ -20,7 +20,7 @@ public class APIController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/calculate-shopping-list")
-    public ResponseEntity<FinalShoppingListDto> getListOfProductsAndCoupons(@RequestBody InputLists inputLists) {
+    public ResponseEntity<FinalShoppingListDto> getListOfProductsAndCoupons(@RequestBody ApiRequest inputLists) {
         return ResponseEntity.ok(apiService.calculateShoppingList(inputLists.getProducts(), inputLists.getCoupons()));
     }
 }

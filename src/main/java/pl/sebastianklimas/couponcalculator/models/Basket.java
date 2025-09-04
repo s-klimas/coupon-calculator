@@ -1,41 +1,46 @@
 package pl.sebastianklimas.couponcalculator.models;
 
-import java.util.Set;
+import java.math.BigDecimal;
 
 public class Basket {
-    private Set<Product> products;
-    private double sumPrice = 0;
+    private ProductSet products;
+    private BigDecimal sumPrice = BigDecimal.ZERO;
 
     public Basket() {
     }
 
-    public Basket(Set<Product> products) {
+    public Basket(ProductSet products) {
         this.products = products;
         calculateSumPrice();
     }
 
-    public Basket(Set<Product> products, double sumPrice) {
+    public Basket(ProductSet products, BigDecimal sumPrice) {
         this.products = products;
         this.sumPrice = sumPrice;
     }
 
-    public Set<Product> getProducts() {
+    public ProductSet getProducts() {
         return products;
     }
 
-    public void setProducts(Set<Product> products) {
+    public void setProducts(ProductSet products) {
         this.products = products;
     }
 
-    public double getSumPrice() {
+    public BigDecimal getSumPrice() {
         return sumPrice;
     }
 
-    public void setSumPrice(double sumPrice) {
+    public void setSumPrice(BigDecimal sumPrice) {
         this.sumPrice = sumPrice;
     }
 
     public void calculateSumPrice() {
-        products.forEach(product -> sumPrice += product.getPrice());
+        products.getProducts().forEach(product -> sumPrice = sumPrice.add(product.getPrice()));
+    }
+
+    @Override
+    public String toString() {
+        return "Basket = {" + products + " sum: " + sumPrice + "}";
     }
 }

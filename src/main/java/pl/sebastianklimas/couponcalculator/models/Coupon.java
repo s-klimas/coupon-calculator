@@ -1,36 +1,37 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import java.math.BigDecimal;
 import java.util.Objects;
 
 public class Coupon {
-    private double minPrice;
-    private double maxDiscount;
+    private BigDecimal minPrice;
+    private BigDecimal maxDiscount;
     private int percentDiscount;
     private String code;
 
     public Coupon() {
     }
 
-    public Coupon(double minPrice, double maxDiscount, int percentDiscount, String code) {
+    public Coupon(BigDecimal minPrice, BigDecimal maxDiscount, int percentDiscount, String code) {
         this.minPrice = minPrice;
         this.maxDiscount = maxDiscount;
         this.percentDiscount = percentDiscount;
         this.code = code;
     }
 
-    public double getMinPrice() {
+    public BigDecimal getMinPrice() {
         return minPrice;
     }
 
-    public void setMinPrice(double minPrice) {
+    public void setMinPrice(BigDecimal minPrice) {
         this.minPrice = minPrice;
     }
 
-    public double getMaxDiscount() {
+    public BigDecimal getMaxDiscount() {
         return maxDiscount;
     }
 
-    public void setMaxDiscount(double maxDiscount) {
+    public void setMaxDiscount(BigDecimal maxDiscount) {
         this.maxDiscount = maxDiscount;
     }
 
@@ -52,10 +53,9 @@ public class Coupon {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Coupon coupon = (Coupon) o;
-        return Double.compare(coupon.minPrice, minPrice) == 0 && Double.compare(coupon.maxDiscount, maxDiscount) == 0 && percentDiscount == coupon.percentDiscount && Objects.equals(code, coupon.code);
+        return percentDiscount == coupon.percentDiscount && Objects.equals(minPrice, coupon.minPrice) && Objects.equals(maxDiscount, coupon.maxDiscount) && Objects.equals(code, coupon.code);
     }
 
     @Override
