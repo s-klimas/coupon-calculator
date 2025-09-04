@@ -4,10 +4,6 @@ import org.springframework.stereotype.Service;
 import pl.sebastianklimas.couponcalculator.models.*;
 
 import java.math.BigDecimal;
-import java.sql.SQLOutput;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -30,20 +26,20 @@ public class APIService {
             int fromProducts = Math.min(i * MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size() - 1);
             int toProducts = Math.min(fromProducts + MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size());
             List<Product> smallProductList = sortedProducts.subList(fromProducts, toProducts);
+            List<Coupon> smallCouponList = new ArrayList<>();
 
-            System.out.println("(" + fromProducts + "," + toProducts + ")");
+            BigDecimal fullPrice = smallProductList.stream()
+                    .map(Product::getPrice)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            int fromCoupons = 0;
-            int toCoupons = Math.min(MAX_SIZE_COUPON_BUNCHES, sortedCoupons.size());
-            List<Coupon> smallCouponList = sortedCoupons.subList(fromCoupons, toCoupons);
+            sortedCoupons.forEach(coupon -> {
+                if (smallCouponList.size() < Math.min(MAX_SIZE_COUPON_BUNCHES, sortedCoupons.size())
+                        &&
+                        coupon.getMinPrice().compareTo(fullPrice) <= 0) {
+                    smallCouponList.add(coupon);
+                }
+            });
 
-            smallProductList.forEach(System.out::println);
-            System.out.println();
-            smallCouponList.forEach(System.out::println);
-            System.out.println();
-            System.out.println();
-
-//            FullShoppingListWithCoupon shoppingListDto = new FullShoppingListWithCoupon();
             FullShoppingListWithCoupon shoppingListDto = calculateShoppingList(smallProductList, smallCouponList);
 
             fullShoppingListWithCoupons.add(shoppingListDto);
@@ -95,8 +91,18 @@ public class APIService {
         }
 
         List<FullShoppingListWithCoupon> bcSorted = new ArrayList<>(top5);
-        bcSorted.sort(Comparator.comparing(list ->
-                list.getTotalPrice().doubleValue()));
+        bcSorted.sort(Comparator.comparing(list -> list.getTotalPrice().doubleValue()));
+
+        if (bcSorted.isEmpty()) {
+            Set<Product> setOfProducts = new HashSet<>(products);
+            ProductSet productSet = new ProductSet(setOfProducts);
+            Basket basket = new Basket(productSet);
+            BasketCoupon basketCoupon = new BasketCoupon(basket);
+            basketCoupon.calculateFinalSum();
+            FullShoppingListWithCoupon noCouponList = new FullShoppingListWithCoupon(List.of(basketCoupon));
+            noCouponList.calculateTotalPrice();
+            return noCouponList;
+        }
 
         return bcSorted.get(0);
     }

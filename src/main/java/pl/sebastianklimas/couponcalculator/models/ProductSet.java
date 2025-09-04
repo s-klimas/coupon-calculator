@@ -6,6 +6,13 @@ import java.util.Set;
 public class ProductSet {
     Set<Product> products = new HashSet<>();
 
+    public ProductSet() {
+    }
+
+    public ProductSet(Set<Product> products) {
+        this.products = products;
+    }
+
     public Set<Product> getProducts() {
         return products;
     }

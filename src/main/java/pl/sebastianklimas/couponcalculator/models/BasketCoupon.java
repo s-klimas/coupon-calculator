@@ -11,6 +11,10 @@ public class BasketCoupon {
     public BasketCoupon() {
     }
 
+    public BasketCoupon(Basket basket) {
+        this.basket = basket;
+    }
+
     public BasketCoupon(Basket basket, Coupon coupon) {
         this.basket = basket;
         this.coupon = coupon;
