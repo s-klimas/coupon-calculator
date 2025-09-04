@@ -5,6 +5,9 @@ import pl.sebastianklimas.couponcalculator.models.*;
 
 import java.math.BigDecimal;
 import java.sql.SQLOutput;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -12,15 +15,9 @@ import java.util.stream.Stream;
 @Service
 public class APIService {
     public FinalShoppingListDto calculateShoppingList(List<Product> products, List<Coupon> coupons) {
-        System.out.println("Request received");
-
         AllSubsetsList allSubsetsList = generateListOfAllSubsets(products);
 
-        System.out.println("Generated all subsets");
-
         List<FullShoppingList> allCombinations = findAllCombinations(new HashSet<>(products), allSubsetsList, coupons.size());
-
-        System.out.println("Generated all combinations");
 
         List<BasketList> allCombinationsBaskets = allCombinations.stream()
                 .map(list -> list.getProductSets().stream()
@@ -29,18 +26,12 @@ public class APIService {
                 .map(BasketList::new)
                 .toList();
 
-        System.out.println("Generated all combinations baskets");
-
         List<FullShoppingListWithCoupon> bcCombinations = matchCouponsToBaskets(coupons, allCombinationsBaskets);
-
-        System.out.println("Generated list of FullShoppingListWithCoupon");
 
         bcCombinations.forEach(list -> {
             list.getBasketCoupons().forEach(BasketCoupon::calculateFinalSum);
             list.calculateTotalPrice();
         });
-
-        System.out.println("Calculated prices");
 
         PriorityQueue<FullShoppingListWithCoupon> top5 = new PriorityQueue<>(
                 5,
@@ -61,8 +52,6 @@ public class APIService {
                 }
             }
         }
-
-        System.out.println("Calculated top 5");
 
         List<FullShoppingListWithCoupon> bcSorted = new ArrayList<>(top5);
         bcSorted.sort(Comparator.comparing(list ->
@@ -106,31 +95,34 @@ public class APIService {
             return List.of(new FullShoppingList(currentCombination.getProductSets()));
         }
 
-        List<FullShoppingList> results = new ArrayList<>();
-
         List<ProductSet> subsets = allSubsetsList.getProductSets();
-        for (int i = startIndex; i < subsets.size(); i++) {
-            ProductSet subset = subsets.get(i);
 
-            Set<Product> intersection = new HashSet<>(subset.getProducts());
-            intersection.retainAll(usedElements);
-            if (!intersection.isEmpty()) continue;
+        Stream<ProductSet> stream = IntStream.range(startIndex, subsets.size())
+                .mapToObj(subsets::get);
 
-            List<ProductSet> newCombination = new ArrayList<>(currentCombination.getProductSets());
-            newCombination.add(subset);
+        return stream
+                .parallel()
+                .filter(subset -> {
+                    for (Product p : subset.getProducts()) {
+                        if (usedElements.contains(p)) return false;
+                    }
+                    return true;
+                })
+                .flatMap(subset -> {
+                    List<ProductSet> newCombination = new ArrayList<>(currentCombination.getProductSets());
+                    newCombination.add(subset);
 
-            Set<Product> newUsed = new HashSet<>(usedElements);
-            newUsed.addAll(subset.getProducts());
+                    Set<Product> newUsed = new HashSet<>(usedElements);
+                    newUsed.addAll(subset.getProducts());
 
-            results.addAll(generateAllCombinations(
-                    allSubsetsList, fullSet, maxSubsets,
-                    new AllSubsetsList(newCombination),
-                    i + 1,
-                    newUsed
-            ));
-        }
-
-        return results;
+                    return generateAllCombinations(
+                            allSubsetsList, fullSet, maxSubsets,
+                            new AllSubsetsList(newCombination),
+                            startIndex + 1,
+                            newUsed
+                    ).stream();
+                })
+                .toList();
     }
 
     private static List<FullShoppingListWithCoupon> matchCouponsToBaskets(List<Coupon> coupons,

@@ -1,5 +1,9 @@
 function addProduct() {
     const container = document.getElementById('products');
+    if (container.children.length >= 9) {
+        alert('Większe ilości produktów nie są rekomendowane (max 9).');
+        return;
+    }
     const row = document.createElement('div');
     row.className = 'product-row';
     row.innerHTML = `
@@ -12,6 +16,10 @@ function addProduct() {
 
 function addCoupon() {
     const container = document.getElementById('coupons');
+    if (container.children.length >= 4) {
+        alert('Większe ilości kuponów nie są rekomendowane (max 4).');
+        return;
+    }
     const row = document.createElement('div');
     row.className = 'coupon-row';
     row.innerHTML = `
@@ -58,33 +66,29 @@ function displayResponse(data) {
     container.style.display = 'block';
     container.innerHTML = '';
 
-
     const fmtMoney = (v) => {
         const n = Number(v);
         return Number.isFinite(n) ? n.toFixed(2) + ' zł' : '—';
     };
-    const fmtNum = (v) => {
-        const n = Number(v);
-        return Number.isFinite(n) ? n.toFixed(2) : '—';
-    };
-
 
     if (Array.isArray(data.shoppingListsWithCoupons)) {
         data.shoppingListsWithCoupons.forEach((list, index) => {
             const entries = Array.isArray(list?.basketCoupons) ? list.basketCoupons : [];
             let totalSum = 0;
-
+            let totalDiscount = 0;
 
             entries.forEach(entry => {
+                const basketSum = Number(entry?.basket?.sumPrice) || 0;
                 const finalSumValue = Number(entry?.finalSum) || 0;
+                const discountUsed = basketSum - finalSumValue;
+                totalDiscount += discountUsed;
+
                 const finalSum = document.createElement('div');
                 finalSum.className = 'final-sum';
                 finalSum.textContent = 'Finalna suma: ' + fmtMoney(finalSumValue);
                 container.appendChild(finalSum);
 
-
                 totalSum += finalSumValue;
-
 
                 const prods = entry?.basket?.products?.products;
                 (Array.isArray(prods) ? prods : []).forEach(p => {
@@ -94,25 +98,30 @@ function displayResponse(data) {
                     container.appendChild(product);
                 });
 
-
                 const c = entry?.coupon ?? null;
                 const couponCode = (c && c.code != null && c.code !== '') ? c.code : 'Brak kodu';
+                const missingToMax = (c && c.maxDiscount != null) ? (c.maxDiscount - discountUsed) : null;
+
                 const coupon = document.createElement('div');
                 coupon.className = 'coupon-item';
                 coupon.textContent = `Kupon: ${couponCode} | Min: ${fmtMoney(c?.minPrice)} | Max: ${fmtMoney(c?.maxDiscount)} | Rabat: ${c?.percentDiscount ?? '—'}%`;
                 container.appendChild(coupon);
 
+                if (discountUsed > 0) {
+                    const saved = document.createElement('div');
+                    saved.className = 'coupon-item';
+                    saved.textContent = `Zaoszczędzono: ${fmtMoney(discountUsed)}${missingToMax !== null && missingToMax > 0 ? ` | Brakuje ${fmtMoney(missingToMax)} do maksymalnego rabatu` : ''}`;
+                    container.appendChild(saved);
+                }
 
                 const separator = document.createElement('hr');
                 container.appendChild(separator);
             });
 
-
             const totalDiv = document.createElement('div');
             totalDiv.className = 'total-sum';
-            totalDiv.textContent = 'Suma całych zakupów: ' + fmtMoney(totalSum);
+            totalDiv.textContent = `Suma całych zakupów: ${fmtMoney(totalSum)} | Łącznie zaoszczędzono: ${fmtMoney(totalDiscount)}`;
             container.appendChild(totalDiv);
-
 
             if (index < data.shoppingListsWithCoupons.length - 1) {
                 const listSeparator = document.createElement('hr');
