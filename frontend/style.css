@@ -28,6 +28,7 @@ h1, h2 {
     display: flex;
     gap: 1rem;
     margin-bottom: 1rem;
+    align-items: center;
 }
 
 input {
@@ -55,6 +56,15 @@ button {
 
 button:hover {
     background: #d89c0b;
+}
+
+.remove-btn {
+    background: #8b0000;
+    padding: 0.4rem 0.8rem;
+}
+
+.remove-btn:hover {
+    background: #a80000;
 }
 
 hr {

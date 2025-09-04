@@ -1,35 +1,35 @@
 <!DOCTYPE html>
-    <html lang="pl">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Dynamiczna lista zakupów</title>
-        <link rel="stylesheet" href="style.css">
-        <script defer src="scripts.js" ></script>
-    </head>
-    <body>
-    <div class="container">
-        <h1>Lista Zakupów</h1>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamiczna lista zakupów</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="scripts.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>Lista Zakupów</h1>
 
-        <div class="section" id="products-section">
-            <h2>Produkty</h2>
-            <div id="products"></div>
-            <button onclick="addProduct()">+ Dodaj produkt</button>
-        </div>
-
-        <div class="section" id="coupons-section">
-            <h2>Kupony</h2>
-            <div id="coupons"></div>
-            <button onclick="addCoupon()">+ Dodaj kupon</button>
-        </div>
-
-        <div class="section">
-            <button onclick="submitForm()">Oblicz</button>
-        </div>
-
-        <hr>
-
-        <div id="response" class="response" style="display:none;"></div>
+    <div class="section" id="products-section">
+        <h2>Produkty</h2>
+        <div id="products"></div>
+        <button onclick="addProduct()">+ Dodaj produkt</button>
     </div>
-    </body>
-    </html>
+
+    <div class="section" id="coupons-section">
+        <h2>Kupony</h2>
+        <div id="coupons"></div>
+        <button onclick="addCoupon()">+ Dodaj kupon</button>
+    </div>
+
+    <div class="section">
+        <button onclick="submitForm()">Oblicz</button>
+    </div>
+
+    <hr>
+
+    <div id="response" class="response" style="display:none;"></div>
+</div>
+</body>
+</html>

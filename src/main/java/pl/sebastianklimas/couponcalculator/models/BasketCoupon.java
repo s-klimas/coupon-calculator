@@ -1,13 +1,18 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 public class BasketCoupon {
     private Basket basket;
     private Coupon coupon;
-    private double finalSum;
+    private BigDecimal finalSum;
 
     public BasketCoupon() {
+    }
+
+    public BasketCoupon(Basket basket) {
+        this.basket = basket;
     }
 
     public BasketCoupon(Basket basket, Coupon coupon) {
@@ -31,25 +36,25 @@ public class BasketCoupon {
         this.coupon = coupon;
     }
 
-    public double getFinalSum() {
+    public BigDecimal getFinalSum() {
         return finalSum;
     }
 
-    public void setFinalSum(double finalSum) {
+    public void setFinalSum(BigDecimal finalSum) {
         this.finalSum = finalSum;
     }
 
     @Override
     public String toString() {
-        return "BasketCoupon " + basket.getProducts().stream().map(Product::getName).collect(Collectors.joining()) + " ( " + basket.getSumPrice() + ") KUPOPN: " + (coupon == null ? "<<BRAK>>" : coupon.getCode()) + " Final sum: " + finalSum;
+        return "BasketCoupon " + basket.getProducts().getProducts().stream().map(Product::getName).collect(Collectors.joining()) + " ( " + basket.getSumPrice() + ") KUPOPN: " + (coupon == null ? "<<BRAK>>" : coupon.getCode()) + " Final sum: " + finalSum;
     }
 
     public void calculateFinalSum() {
-        if (coupon == null || basket.getSumPrice() < coupon.getMinPrice()) finalSum = basket.getSumPrice();
+        if (coupon == null || basket.getSumPrice().compareTo(coupon.getMinPrice()) < 0) finalSum = basket.getSumPrice();
         else {
-            double proposedDiscount = basket.getSumPrice() * coupon.getPercentDiscount() / 100;
-            double discount = Math.min(proposedDiscount, coupon.getMaxDiscount());
-            finalSum = basket.getSumPrice() - discount;
+            BigDecimal proposedDiscount = basket.getSumPrice().multiply(BigDecimal.valueOf(coupon.getPercentDiscount() / 100.0));
+            BigDecimal discount = proposedDiscount.compareTo(coupon.getMaxDiscount()) <= 0 ? proposedDiscount : coupon.getMaxDiscount();
+            finalSum = basket.getSumPrice().subtract(discount);
         }
     }
 }

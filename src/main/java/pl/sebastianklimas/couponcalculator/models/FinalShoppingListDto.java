@@ -1,19 +1,29 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FinalShoppingListDto {
-    private List<List<BasketCoupon>> shoppingList;
+    private List<FullShoppingListWithCoupon> shoppingListsWithCoupons;
 
-    public FinalShoppingListDto(List<List<BasketCoupon>> shoppingList) {
-        this.shoppingList = shoppingList;
+    public FinalShoppingListDto() {
     }
 
-    public List<List<BasketCoupon>> getShoppingList() {
-        return shoppingList;
+    public FinalShoppingListDto(List<FullShoppingListWithCoupon> shoppingList) {
+        this.shoppingListsWithCoupons = shoppingList;
     }
 
-    public void setShoppingList(List<List<BasketCoupon>> shoppingList) {
-        this.shoppingList = shoppingList;
+    public List<FullShoppingListWithCoupon> getShoppingListsWithCoupons() {
+        return shoppingListsWithCoupons;
+    }
+
+    public List<Coupon> getAllUsedCoupons() {
+        List<Coupon> usedCoupons = new ArrayList<>();
+
+        shoppingListsWithCoupons
+                .forEach(shoppingListWithCoupon -> shoppingListWithCoupon.getBasketCoupons()
+                        .forEach(basketCoupon -> usedCoupons.add(basketCoupon.getCoupon())));
+
+        return usedCoupons;
     }
 }
