@@ -10,35 +10,22 @@ import java.util.stream.Stream;
 
 @Service
 public class APIService {
+    public final int MAX_SIZE_PRODUCT_BUNCHES = 8;
+    public final int MAX_SIZE_COUPON_BUNCHES = 4;
+
     public List<PotentialOrder> splitLists(List<Product> products, List<Coupon> coupons) {
-        final int MAX_SIZE_PRODUCT_BUNCHES = 8;
-        final int MAX_SIZE_COUPON_BUNCHES = 4;
 
         if (products.isEmpty() || coupons.isEmpty()) return new ArrayList<>();
 
-        List<Product> sortedProducts = products.stream().sorted(Comparator.comparing(Product::getPrice).reversed()).toList();
-        List<Coupon> sortedCoupons = new ArrayList<>();
-        coupons.stream().sorted(Comparator.comparing(Coupon::getPercentDiscount).reversed()).forEach(sortedCoupons::add);
+        List<Product> sortedProducts = sortProducts(products);
+        List<Coupon> sortedCoupons = sortCoupons(coupons);
 
         List<PotentialOrder> potentialOrders = new ArrayList<>();
 
         for (int i = 0; i <= (sortedProducts.size() - 1) / MAX_SIZE_PRODUCT_BUNCHES; i++) {
-            int fromProducts = Math.min(i * MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size() - 1);
-            int toProducts = Math.min(fromProducts + MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size());
-            List<Product> smallProductList = sortedProducts.subList(fromProducts, toProducts);
-            List<Coupon> smallCouponList = new ArrayList<>();
-
-            BigDecimal fullPrice = smallProductList.stream()
-                    .map(Product::getPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            sortedCoupons.forEach(coupon -> {
-                if (smallCouponList.size() < Math.min(MAX_SIZE_COUPON_BUNCHES, sortedCoupons.size())
-                        &&
-                        coupon.getMinPrice().compareTo(fullPrice) <= 0) {
-                    smallCouponList.add(coupon);
-                }
-            });
+            List<Product> smallProductList = createSmallProductList(sortedProducts, i);
+            BigDecimal fullPrice = calculateFullPrice(smallProductList);
+            List<Coupon> smallCouponList = createSmallCouponList(sortedCoupons, fullPrice);
 
             PotentialOrder potentialOrder = calculateShoppingList(smallProductList, smallCouponList);
 
@@ -49,6 +36,42 @@ public class APIService {
         }
 
         return potentialOrders;
+    }
+
+    private List<Product> sortProducts(List<Product> products) {
+        return products.stream().sorted(Comparator.comparing(Product::getPrice).reversed()).toList();
+    }
+
+    private List<Coupon> sortCoupons(List<Coupon> coupons) {
+        List<Coupon> sortedCoupons = new ArrayList<>();
+        coupons.stream().sorted(Comparator.comparing(Coupon::getPercentDiscount).reversed()).forEach(sortedCoupons::add);
+        return sortedCoupons;
+    }
+
+    private List<Product> createSmallProductList(List<Product> sortedProducts, int i) {
+        int fromProducts = Math.min(i * MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size() - 1);
+        int toProducts = Math.min(fromProducts + MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size());
+        return sortedProducts.subList(fromProducts, toProducts);
+    }
+
+    private List<Coupon> createSmallCouponList(List<Coupon> sortedCoupons, BigDecimal fullPrice) {
+        List<Coupon> smallCouponList = new ArrayList<>();
+
+        sortedCoupons.forEach(coupon -> {
+            if (smallCouponList.size() < Math.min(MAX_SIZE_COUPON_BUNCHES, sortedCoupons.size())
+                    &&
+                    coupon.getMinPrice().compareTo(fullPrice) <= 0) {
+                smallCouponList.add(coupon);
+            }
+        });
+
+        return smallCouponList;
+    }
+
+    private BigDecimal calculateFullPrice(List<Product> products) {
+        return products.stream()
+                .map(Product::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     private PotentialOrder calculateShoppingList(List<Product> products, List<Coupon> coupons) {
@@ -165,15 +188,15 @@ public class APIService {
     }
 
     private static List<List<PotentialCart>> generateCombinations(List<Subset> baskets,
-                                                                 List<Coupon> coupons) {
+                                                                  List<Coupon> coupons) {
         return backtrack(baskets, coupons, 0, new ArrayList<>(), new HashSet<>());
     }
 
     private static List<List<PotentialCart>> backtrack(List<Subset> baskets,
-                                                      List<Coupon> coupons,
-                                                      int basketIndex,
-                                                      List<PotentialCart> currentCombination,
-                                                      Set<Integer> usedCoupons) {
+                                                       List<Coupon> coupons,
+                                                       int basketIndex,
+                                                       List<PotentialCart> currentCombination,
+                                                       Set<Integer> usedCoupons) {
         if (basketIndex == baskets.size()) {
             return List.of(new ArrayList<>(currentCombination));
         }
