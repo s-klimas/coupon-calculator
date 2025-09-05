@@ -31,10 +31,7 @@ public class Product {
     }
 
     @Override
-//    public String toString() {
-//        return "Product - " + name + " - " + price + "PLN";
-//    }
     public String toString() {
-        return name;
+        return "Product - " + name + " - " + price + "PLN";
     }
 }

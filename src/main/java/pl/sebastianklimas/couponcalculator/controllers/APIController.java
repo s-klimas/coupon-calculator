@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import pl.sebastianklimas.couponcalculator.exceptions.TooManyCouponsException;
 import pl.sebastianklimas.couponcalculator.exceptions.TooManyProductsException;
 import pl.sebastianklimas.couponcalculator.models.ApiRequest;
-import pl.sebastianklimas.couponcalculator.models.FullShoppingListWithCoupon;
+import pl.sebastianklimas.couponcalculator.models.PotentialOrder;
 import pl.sebastianklimas.couponcalculator.services.APIService;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class APIController {
 
     @CrossOrigin(origins = "*")
     @PostMapping("/calculate-shopping-list")
-    public ResponseEntity<List<FullShoppingListWithCoupon>> getListOfProductsAndCoupons(@RequestBody ApiRequest inputLists) {
+    public ResponseEntity<List<PotentialOrder>> getListOfProductsAndCoupons(@RequestBody ApiRequest inputLists) {
         return ResponseEntity.ok(apiService.splitLists(inputLists.getProducts(), inputLists.getCoupons()));
     }
 
