@@ -1,9 +1,14 @@
 package pl.sebastianklimas.couponcalculator.services;
 
 import org.springframework.stereotype.Service;
-import pl.sebastianklimas.couponcalculator.models.*;
+import pl.sebastianklimas.couponcalculator.models.Combination;
+import pl.sebastianklimas.couponcalculator.models.Product;
+import pl.sebastianklimas.couponcalculator.models.Subset;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 public class CombinationGenerator {
