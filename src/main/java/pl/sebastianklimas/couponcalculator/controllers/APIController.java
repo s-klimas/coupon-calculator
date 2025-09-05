@@ -1,10 +1,10 @@
 package pl.sebastianklimas.couponcalculator.controllers;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-import pl.sebastianklimas.couponcalculator.exceptions.TooManyCouponsException;
-import pl.sebastianklimas.couponcalculator.exceptions.TooManyProductsException;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import pl.sebastianklimas.couponcalculator.models.ApiRequest;
 import pl.sebastianklimas.couponcalculator.models.PotentialOrder;
 import pl.sebastianklimas.couponcalculator.services.APIService;
@@ -24,15 +24,5 @@ public class APIController {
     @PostMapping("/calculate-shopping-list")
     public ResponseEntity<List<PotentialOrder>> getListOfProductsAndCoupons(@RequestBody ApiRequest inputLists) {
         return ResponseEntity.ok(apiService.splitLists(inputLists.getProducts(), inputLists.getCoupons()));
-    }
-
-    @ExceptionHandler(TooManyProductsException.class)
-    public ResponseEntity<String> handleTooManyProductsException(TooManyProductsException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-    }
-
-    @ExceptionHandler(TooManyCouponsException.class)
-    public ResponseEntity<String> handleTooManyCouponsException(TooManyCouponsException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 }
