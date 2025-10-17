@@ -1,40 +1,22 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Setter
+@Getter
 public class Product {
     private BigDecimal price;
     private String name;
 
-    public Product() {
-    }
-
-    public Product(BigDecimal price, String name) {
-        this.price = price;
-        this.name = name;
-    }
-
-    public BigDecimal getPrice() {
-        return price;
-    }
-
-    public void setPrice(BigDecimal price) {
-        this.price = price;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
     @Override
-//    public String toString() {
-//        return "Product - " + name + " - " + price + "PLN";
-//    }
     public String toString() {
-        return name;
+        return "Product - " + name + " - " + price + "PLN";
     }
 }

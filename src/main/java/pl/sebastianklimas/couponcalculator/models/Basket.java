@@ -1,38 +1,23 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 public class Basket {
     private ProductSet products;
     private BigDecimal sumPrice = BigDecimal.ZERO;
 
-    public Basket() {
-    }
-
     public Basket(ProductSet products) {
         this.products = products;
         calculateSumPrice();
-    }
-
-    public Basket(ProductSet products, BigDecimal sumPrice) {
-        this.products = products;
-        this.sumPrice = sumPrice;
-    }
-
-    public ProductSet getProducts() {
-        return products;
-    }
-
-    public void setProducts(ProductSet products) {
-        this.products = products;
-    }
-
-    public BigDecimal getSumPrice() {
-        return sumPrice;
-    }
-
-    public void setSumPrice(BigDecimal sumPrice) {
-        this.sumPrice = sumPrice;
     }
 
     public void calculateSumPrice() {

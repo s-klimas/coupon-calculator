@@ -1,55 +1,22 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
 public class Coupon {
     private BigDecimal minPrice;
     private BigDecimal maxDiscount;
     private int percentDiscount;
     private String code;
-
-    public Coupon() {
-    }
-
-    public Coupon(BigDecimal minPrice, BigDecimal maxDiscount, int percentDiscount, String code) {
-        this.minPrice = minPrice;
-        this.maxDiscount = maxDiscount;
-        this.percentDiscount = percentDiscount;
-        this.code = code;
-    }
-
-    public BigDecimal getMinPrice() {
-        return minPrice;
-    }
-
-    public void setMinPrice(BigDecimal minPrice) {
-        this.minPrice = minPrice;
-    }
-
-    public BigDecimal getMaxDiscount() {
-        return maxDiscount;
-    }
-
-    public void setMaxDiscount(BigDecimal maxDiscount) {
-        this.maxDiscount = maxDiscount;
-    }
-
-    public int getPercentDiscount() {
-        return percentDiscount;
-    }
-
-    public void setPercentDiscount(int percentDiscount) {
-        this.percentDiscount = percentDiscount;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
 
     @Override
     public boolean equals(Object o) {

@@ -1,19 +1,18 @@
 package pl.sebastianklimas.couponcalculator.models;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import java.util.ArrayList;
 import java.util.List;
 
-
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
 public class AllSubsetsList {
     private List<ProductSet> productSets = new ArrayList<>();
-
-    public AllSubsetsList() {
-    }
-
-    public AllSubsetsList(List<ProductSet> productSets) {
-        this.productSets = productSets;
-    }
 
     public void addProductSet(ProductSet productSet) {
         productSets.add(productSet);
@@ -33,9 +32,5 @@ public class AllSubsetsList {
             System.out.println();
         }
         System.out.println("}");
-    }
-
-    public List<ProductSet> getProductSets() {
-        return productSets;
     }
 }

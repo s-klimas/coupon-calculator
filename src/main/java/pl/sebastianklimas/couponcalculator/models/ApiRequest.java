@@ -1,16 +1,11 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.Getter;
+
 import java.util.List;
 
+@Getter
 public class ApiRequest {
     private List<Product> products;
     private List<Coupon> coupons;
-
-    public List<Product> getProducts() {
-        return products;
-    }
-
-    public List<Coupon> getCoupons() {
-        return coupons;
-    }
 }

@@ -1,15 +1,19 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor
+@Getter
+@Setter
 public class BasketCoupon {
     private Basket basket;
     private Coupon coupon;
     private BigDecimal finalSum;
-
-    public BasketCoupon() {
-    }
 
     public BasketCoupon(Basket basket) {
         this.basket = basket;
@@ -18,30 +22,6 @@ public class BasketCoupon {
     public BasketCoupon(Basket basket, Coupon coupon) {
         this.basket = basket;
         this.coupon = coupon;
-    }
-
-    public Basket getBasket() {
-        return basket;
-    }
-
-    public void setBasket(Basket basket) {
-        this.basket = basket;
-    }
-
-    public Coupon getCoupon() {
-        return coupon;
-    }
-
-    public void setCoupon(Coupon coupon) {
-        this.coupon = coupon;
-    }
-
-    public BigDecimal getFinalSum() {
-        return finalSum;
-    }
-
-    public void setFinalSum(BigDecimal finalSum) {
-        this.finalSum = finalSum;
     }
 
     @Override

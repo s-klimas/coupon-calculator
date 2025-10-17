@@ -1,17 +1,14 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.List;
 
+@AllArgsConstructor
+@Getter
 public class BasketList {
     private List<Basket> baskets;
-
-    public BasketList(List<Basket> baskets) {
-        this.baskets = baskets;
-    }
-
-    public List<Basket> getBaskets() {
-        return baskets;
-    }
 
     @Override
     public String toString() {

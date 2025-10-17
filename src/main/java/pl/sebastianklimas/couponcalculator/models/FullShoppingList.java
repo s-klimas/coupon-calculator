@@ -1,17 +1,14 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import java.util.List;
 
+@AllArgsConstructor
+@Getter
 public class FullShoppingList {
     List<ProductSet> productSets;
-
-    public FullShoppingList(List<ProductSet> productSets) {
-        this.productSets = productSets;
-    }
-
-    public List<ProductSet> getProductSets() {
-        return productSets;
-    }
 
     @Override
     public String toString() {
