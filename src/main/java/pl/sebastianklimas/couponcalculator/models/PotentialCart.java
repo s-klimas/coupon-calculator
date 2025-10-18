@@ -1,10 +1,18 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
+@Getter
+@Setter
+@Schema(description = "A helper class containing a Subset with an assigned coupon, and the final sum including the discount")
 public class PotentialCart {
     private Subset subset;
     private Coupon coupon;
+    @Schema(description = "The total sum of the potential cart with discount applied")
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     public PotentialCart(Subset subset) {
@@ -16,30 +24,6 @@ public class PotentialCart {
         this.subset = subset;
         this.coupon = coupon;
         calculateTotalPrice();
-    }
-
-    public Subset getSubset() {
-        return subset;
-    }
-
-    public void setSubset(Subset subset) {
-        this.subset = subset;
-    }
-
-    public Coupon getCoupon() {
-        return coupon;
-    }
-
-    public void setCoupon(Coupon coupon) {
-        this.coupon = coupon;
-    }
-
-    public BigDecimal getTotalPrice() {
-        return totalPrice;
-    }
-
-    public void setTotalPrice(BigDecimal totalPrice) {
-        this.totalPrice = totalPrice;
     }
 
     private void calculateTotalPrice() {

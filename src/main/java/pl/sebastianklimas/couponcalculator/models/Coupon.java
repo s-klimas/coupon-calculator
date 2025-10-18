@@ -1,55 +1,28 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 import java.util.Objects;
 
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+@Setter
+@Schema(description = "The class containing information about coupon")
 public class Coupon {
+    @Schema(name = "minPrice", example = "10", description = "Minimum total price of products to use the coupon")
     private BigDecimal minPrice;
+    @Schema(name = "maxDiscount", example = "1000", description = "The maximum discount you can get with coupon")
     private BigDecimal maxDiscount;
+    @Schema(name = "percentDiscount", example = "50", description = "Percentage discount on the coupon")
     private int percentDiscount;
+    @Schema(name = "code", example = "Code 1", description = "The code of the coupon")
     private String code;
-
-    public Coupon() {
-    }
-
-    public Coupon(BigDecimal minPrice, BigDecimal maxDiscount, int percentDiscount, String code) {
-        this.minPrice = minPrice;
-        this.maxDiscount = maxDiscount;
-        this.percentDiscount = percentDiscount;
-        this.code = code;
-    }
-
-    public BigDecimal getMinPrice() {
-        return minPrice;
-    }
-
-    public void setMinPrice(BigDecimal minPrice) {
-        this.minPrice = minPrice;
-    }
-
-    public BigDecimal getMaxDiscount() {
-        return maxDiscount;
-    }
-
-    public void setMaxDiscount(BigDecimal maxDiscount) {
-        this.maxDiscount = maxDiscount;
-    }
-
-    public int getPercentDiscount() {
-        return percentDiscount;
-    }
-
-    public void setPercentDiscount(int percentDiscount) {
-        this.percentDiscount = percentDiscount;
-    }
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
 
     @Override
     public boolean equals(Object o) {
