@@ -11,8 +11,9 @@ import java.util.stream.Stream;
 @Service
 public class APIService {
     public List<FullShoppingListWithCoupon> splitLists(List<Product> products, List<Coupon> coupons) {
-        final int MAX_SIZE_PRODUCT_BUNCHES = 8;
-        final int MAX_SIZE_COUPON_BUNCHES = 4;
+        /* --- You can increase them to 8 and 4 but calculating will take longer. I don't recommend to increase it further. --- */
+        final int MAX_SIZE_PRODUCT_BUNCHES = 7;
+        final int MAX_SIZE_COUPON_BUNCHES = 3;
 
         if (products.isEmpty() || coupons.isEmpty()) return new ArrayList<>();
 
