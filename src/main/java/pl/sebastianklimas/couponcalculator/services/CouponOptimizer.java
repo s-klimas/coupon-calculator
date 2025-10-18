@@ -14,6 +14,10 @@ import java.util.stream.Stream;
 public class CouponOptimizer {
     public List<PotentialOrder> generateAllPotentialOrders(List<Coupon> coupons,
                                                            List<Combination> combinations) {
+        if (coupons == null || combinations == null) {
+            throw new IllegalArgumentException("Coupons and combinations must not be null");
+        }
+
         return combinations
                 .parallelStream()
                 .flatMap(combination ->
@@ -22,9 +26,9 @@ public class CouponOptimizer {
                 .toList();
     }
 
-    private List<List<PotentialCart>> generateCombinations(List<Subset> baskets,
+    private List<List<PotentialCart>> generateCombinations(List<Subset> subsets,
                                                            List<Coupon> coupons) {
-        return backtrack(baskets, coupons, 0, new ArrayList<>(), new HashSet<>());
+        return backtrack(subsets, coupons, 0, new ArrayList<>(), new HashSet<>());
     }
 
     private List<List<PotentialCart>> backtrack(List<Subset> subsets,
