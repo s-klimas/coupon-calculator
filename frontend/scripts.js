@@ -67,45 +67,45 @@ function displayResponse(data) {
         let grandTotal = 0;
         let grandDiscount = 0;
 
-        data.forEach((list, index) => {
-            const entries = Array.isArray(list?.basketCoupons) ? list.basketCoupons : [];
+        data.forEach((cartSet, idx) => {
+            const potentialCarts = Array.isArray(cartSet?.potentialCarts) ? cartSet.potentialCarts : [];
 
-            entries.forEach(entry => {
-                const basketSum = Number(entry?.basket?.sumPrice) || 0;
-                const finalSumValue = Number(entry?.finalSum) || 0;
-                const discountUsed = basketSum - finalSumValue;
+            potentialCarts.forEach((cart, cIdx) => {
+                const subsetPrice = Number(cart?.subset?.totalPrice) || 0;
+                const finalPrice = Number(cart?.totalPrice) || 0;
+                const discount = subsetPrice - finalPrice;
 
-                grandTotal += finalSumValue;
-                grandDiscount += discountUsed;
+                grandTotal += finalPrice;
+                grandDiscount += discount;
 
+                // nagłówek koszyka
                 const finalSum = document.createElement('div');
                 finalSum.className = 'final-sum';
-                finalSum.textContent = 'Finalna suma: ' + fmtMoney(finalSumValue);
+                finalSum.textContent = `Koszyk #${idx + 1}.${cIdx + 1} | Przed rabatem: ${fmtMoney(subsetPrice)} | Po rabacie: ${fmtMoney(finalPrice)}`;
                 container.appendChild(finalSum);
 
-                const prods = entry?.basket?.products?.products;
-                (Array.isArray(prods) ? prods : []).forEach(p => {
+                // produkty
+                (Array.isArray(cart?.subset?.products) ? cart.subset.products : []).forEach(p => {
                     const product = document.createElement('div');
                     product.className = 'product-item';
                     product.textContent = `Produkt: ${p?.name ?? '—'} | Cena: ${fmtMoney(p?.price)}`;
                     container.appendChild(product);
                 });
 
-                const c = entry?.coupon ?? null;
-                const couponCode = (c && c.code != null && c.code !== '') ? c.code : 'Brak kodu';
-                const missingToMax = (c && c.maxDiscount != null) ? (c.maxDiscount - discountUsed) : null;
-
+                // kupon
+                const c = cart?.coupon ?? null;
                 if (c) {
                     const coupon = document.createElement('div');
                     coupon.className = 'coupon-item';
-                    coupon.textContent = `Kupon: ${couponCode} | Min: ${fmtMoney(c?.minPrice)} | Max: ${fmtMoney(c?.maxDiscount)} | Rabat: ${c?.percentDiscount ?? '—'}%`;
+                    coupon.textContent = `Kupon: ${c.code} | Min: ${fmtMoney(c.minPrice)} | Max: ${fmtMoney(c.maxDiscount)} | Rabat: ${c.percentDiscount}%`;
                     container.appendChild(coupon);
                 }
 
-                if (discountUsed > 0) {
+                // oszczędności
+                if (discount > 0) {
                     const saved = document.createElement('div');
                     saved.className = 'coupon-item';
-                    saved.textContent = `Zaoszczędzono: ${fmtMoney(discountUsed)}${missingToMax !== null && missingToMax > 0 ? ` | Brakuje ${fmtMoney(missingToMax)} do maksymalnego rabatu` : ''}`;
+                    saved.textContent = `Zaoszczędzono: ${fmtMoney(discount)}`;
                     container.appendChild(saved);
                 }
 
@@ -114,10 +114,10 @@ function displayResponse(data) {
             });
         });
 
-        // 🔥 Jedno podsumowanie na końcu
+        // podsumowanie globalne
         const totalDiv = document.createElement('div');
         totalDiv.className = 'total-sum';
-        totalDiv.textContent = `Suma całych zakupów: ${fmtMoney(grandTotal)} | Łącznie zaoszczędzono: ${fmtMoney(grandDiscount)}`;
+        totalDiv.textContent = `Łączna kwota po rabatach: ${fmtMoney(grandTotal)} | Łączne oszczędności: ${fmtMoney(grandDiscount)}`;
         container.appendChild(totalDiv);
 
     } else {

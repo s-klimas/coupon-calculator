@@ -5,221 +5,118 @@ import pl.sebastianklimas.couponcalculator.models.*;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 @Service
 public class APIService {
     public List<FullShoppingListWithCoupon> splitLists(List<Product> products, List<Coupon> coupons) {
         /* --- You can increase them to 8 and 4 but calculating will take longer. I don't recommend to increase it further. --- */
-        final int MAX_SIZE_PRODUCT_BUNCHES = 7;
-        final int MAX_SIZE_COUPON_BUNCHES = 3;
+//        final int MAX_SIZE_PRODUCT_BUNCHES = 7;
+//        final int MAX_SIZE_COUPON_BUNCHES = 3;
+    private final int MAX_SIZE_PRODUCT_BUNCHES = 9;
+    private final int MAX_SIZE_COUPON_BUNCHES = 5;
+    private final CombinationGenerator combinationGenerator;
+    private final CouponOptimizer couponOptimizer;
+
+    public APIService(CombinationGenerator combinationGenerator, CouponOptimizer couponOptimizer) {
+        this.combinationGenerator = combinationGenerator;
+        this.couponOptimizer = couponOptimizer;
+    }
+
+    public List<PotentialOrder> splitLists(List<Product> products, List<Coupon> coupons) {
 
         if (products.isEmpty() || coupons.isEmpty()) return new ArrayList<>();
 
-        List<Product> sortedProducts = products.stream().sorted(Comparator.comparing(Product::getPrice).reversed()).toList();
-        List<Coupon> sortedCoupons = new ArrayList<>();
-        coupons.stream().sorted(Comparator.comparing(Coupon::getPercentDiscount).reversed()).forEach(sortedCoupons::add);
+        sortProducts(products);
+        sortCoupons(coupons);
 
-        List<FullShoppingListWithCoupon> fullShoppingListWithCoupons = new ArrayList<>();
+        List<PotentialOrder> potentialOrders = new ArrayList<>();
 
-        for (int i = 0; i <= (sortedProducts.size() - 1) / MAX_SIZE_PRODUCT_BUNCHES; i++) {
-            int fromProducts = Math.min(i * MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size() - 1);
-            int toProducts = Math.min(fromProducts + MAX_SIZE_PRODUCT_BUNCHES, sortedProducts.size());
-            List<Product> smallProductList = sortedProducts.subList(fromProducts, toProducts);
-            List<Coupon> smallCouponList = new ArrayList<>();
+        for (int i = 0; i <= (products.size() - 1) / MAX_SIZE_PRODUCT_BUNCHES; i++) {
+            List<Product> smallProductList = createSmallProductList(products, i);
+            BigDecimal fullPrice = calculateFullPrice(smallProductList);
+            List<Coupon> smallCouponList = createSmallCouponList(coupons, fullPrice);
 
-            BigDecimal fullPrice = smallProductList.stream()
-                    .map(Product::getPrice)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            PotentialOrder potentialOrder = calculateShoppingList(smallProductList, smallCouponList);
 
-            sortedCoupons.forEach(coupon -> {
-                if (smallCouponList.size() < Math.min(MAX_SIZE_COUPON_BUNCHES, sortedCoupons.size())
-                        &&
-                        coupon.getMinPrice().compareTo(fullPrice) <= 0) {
-                    smallCouponList.add(coupon);
-                }
-            });
+            potentialOrders.add(potentialOrder);
 
-            FullShoppingListWithCoupon shoppingListDto = calculateShoppingList(smallProductList, smallCouponList);
-
-            fullShoppingListWithCoupons.add(shoppingListDto);
-
-            List<Coupon> allUsedCoupons = shoppingListDto.getAllUsedCoupons();
-            sortedCoupons.removeAll(allUsedCoupons);
+            List<Coupon> allUsedCoupons = potentialOrder.findAllUsedCoupons();
+            coupons.removeAll(allUsedCoupons);
         }
 
-        return fullShoppingListWithCoupons;
+        return potentialOrders;
     }
 
-    private FullShoppingListWithCoupon calculateShoppingList(List<Product> products, List<Coupon> coupons) {
-        AllSubsetsList allSubsetsList = generateListOfAllSubsets(products);
+    private void sortProducts(List<Product> products) {
+        products.sort(Comparator.comparing(Product::getPrice).reversed());
+    }
 
-        List<FullShoppingList> allCombinations = findAllCombinations(new HashSet<>(products), allSubsetsList, coupons.size());
+    private void sortCoupons(List<Coupon> coupons) {
+        coupons.sort(Comparator.comparing(Coupon::getPercentDiscount).reversed());
+    }
 
-        List<BasketList> allCombinationsBaskets = allCombinations.stream()
-                .map(list -> list.getProductSets().stream()
-                        .map(Basket::new)
-                        .toList())
-                .map(BasketList::new)
-                .toList();
+    private List<Product> createSmallProductList(List<Product> products, int i) {
+        int fromProducts = i * MAX_SIZE_PRODUCT_BUNCHES;
+        int toProducts = Math.min(fromProducts + MAX_SIZE_PRODUCT_BUNCHES, products.size());
 
-        List<FullShoppingListWithCoupon> bcCombinations = matchCouponsToBaskets(coupons, allCombinationsBaskets);
+        return products.subList(fromProducts, toProducts);
+    }
 
-        bcCombinations.forEach(list -> {
-            list.getBasketCoupons().forEach(BasketCoupon::calculateFinalSum);
-            list.calculateTotalPrice();
-        });
+    private List<Coupon> createSmallCouponList(List<Coupon> coupons, BigDecimal fullPrice) {
+        return coupons.stream()
+                .filter(coupon -> coupon.getMinPrice().compareTo(fullPrice) <= 0)
+                .limit(Math.min(MAX_SIZE_COUPON_BUNCHES, coupons.size()))
+                .collect(
+                        Collectors.toCollection(
+                                ArrayList::new
+                        )
+                );
+    }
 
-        PriorityQueue<FullShoppingListWithCoupon> top5 = new PriorityQueue<>(
+    private BigDecimal calculateFullPrice(List<Product> products) {
+        return products.stream()
+                .map(Product::getPrice)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private PotentialOrder calculateShoppingList(List<Product> products, List<Coupon> coupons) {
+        List<Subset> allSubsetsList = combinationGenerator.generateListOfAllSubsets(products);
+
+        List<Combination> allCombinations = combinationGenerator.findAllCombinations(new HashSet<>(products), allSubsetsList, coupons.size());
+
+        List<PotentialOrder> potentialOrders = couponOptimizer.generateAllPotentialOrders(coupons, allCombinations);
+
+        PriorityQueue<PotentialOrder> top1 = new PriorityQueue<>(
                 1,
-                Comparator.comparingDouble((FullShoppingListWithCoupon f) -> f.getTotalPrice().doubleValue()).reversed()
+                Comparator.comparingDouble((PotentialOrder f) -> f.getTotalPrice().doubleValue()).reversed()
         );
 
-        for (FullShoppingListWithCoupon combination : bcCombinations) {
-            if (top5.isEmpty()) {
-                top5.offer(combination);
+        for (PotentialOrder potentialOrder : potentialOrders) {
+            if (top1.isEmpty()) {
+                top1.offer(potentialOrder);
             } else {
-                BigDecimal currentSum = combination.getTotalPrice();
-                FullShoppingListWithCoupon worst = Objects.requireNonNull(top5.peek());
+                BigDecimal currentSum = potentialOrder.getTotalPrice();
+                PotentialOrder worst = Objects.requireNonNull(top1.peek());
                 BigDecimal worstTop = worst.getTotalPrice();
 
                 if (currentSum.compareTo(worstTop) < 0) {
-                    top5.poll();
-                    top5.offer(combination);
+                    top1.poll();
+                    top1.offer(potentialOrder);
                 }
             }
         }
 
-        List<FullShoppingListWithCoupon> bcSorted = new ArrayList<>(top5);
-        bcSorted.sort(Comparator.comparing(list -> list.getTotalPrice().doubleValue()));
+        List<PotentialOrder> orders = new ArrayList<>(top1);
+        orders.sort(Comparator.comparing(list -> list.getTotalPrice().doubleValue()));
 
-        if (bcSorted.isEmpty()) {
+        if (orders.isEmpty()) {
             Set<Product> setOfProducts = new HashSet<>(products);
-            ProductSet productSet = new ProductSet(setOfProducts);
-            Basket basket = new Basket(productSet);
-            BasketCoupon basketCoupon = new BasketCoupon(basket);
-            basketCoupon.calculateFinalSum();
-            FullShoppingListWithCoupon noCouponList = new FullShoppingListWithCoupon(List.of(basketCoupon));
-            noCouponList.calculateTotalPrice();
-            return noCouponList;
+            Subset subset = new Subset(setOfProducts);
+            PotentialCart potentialCart = new PotentialCart(subset);
+            return new PotentialOrder(List.of(potentialCart));
         }
 
-        return bcSorted.get(0);
-    }
-
-    private AllSubsetsList generateListOfAllSubsets(List<Product> products) {
-        AllSubsetsList result = new AllSubsetsList();
-        int totalSubsets = 1 << products.size(); // 2^n
-        for (int i = 0; i < totalSubsets; i++) {
-            ProductSet productSet = new ProductSet();
-            for (int j = 0; j < products.size(); j++) {
-                if ((i & (1 << j)) != 0) {
-                    productSet.addProduct(products.get(j));
-                }
-            }
-            if (!productSet.getProducts().isEmpty()) {
-                result.addProductSet(productSet);
-            }
-        }
-        return result;
-    }
-
-    private List<FullShoppingList> findAllCombinations(Set<Product> fullList,
-                                                       AllSubsetsList allSubsetsList,
-                                                       int maxSubsets) {
-        return generateAllCombinations(allSubsetsList, fullList, maxSubsets,
-                new AllSubsetsList(), 0, new HashSet<>());
-    }
-
-    private List<FullShoppingList> generateAllCombinations(AllSubsetsList allSubsetsList,
-                                                           Set<Product> fullSet,
-                                                           int maxSubsets,
-                                                           AllSubsetsList currentCombination,
-                                                           int startIndex,
-                                                           Set<Product> usedElements) {
-        if (currentCombination.getProductSets().size() > maxSubsets) return Collections.emptyList();
-        if (usedElements.equals(fullSet)) {
-            return List.of(new FullShoppingList(currentCombination.getProductSets()));
-        }
-
-        List<ProductSet> subsets = allSubsetsList.getProductSets();
-
-        Stream<ProductSet> stream = IntStream.range(startIndex, subsets.size())
-                .mapToObj(subsets::get);
-
-        return stream
-                .parallel()
-                .filter(subset -> {
-                    for (Product p : subset.getProducts()) {
-                        if (usedElements.contains(p)) return false;
-                    }
-                    return true;
-                })
-                .flatMap(subset -> {
-                    List<ProductSet> newCombination = new ArrayList<>(currentCombination.getProductSets());
-                    newCombination.add(subset);
-
-                    Set<Product> newUsed = new HashSet<>(usedElements);
-                    newUsed.addAll(subset.getProducts());
-
-                    return generateAllCombinations(
-                            allSubsetsList, fullSet, maxSubsets,
-                            new AllSubsetsList(newCombination),
-                            startIndex + 1,
-                            newUsed
-                    ).stream();
-                })
-                .toList();
-    }
-
-    private static List<FullShoppingListWithCoupon> matchCouponsToBaskets(List<Coupon> coupons,
-                                                                          List<BasketList> allCombinationsBaskets) {
-        return allCombinationsBaskets
-                .parallelStream()
-                .flatMap(basketCombination ->
-                        generateCombinations(basketCombination.getBaskets(), coupons).stream())
-                .map(FullShoppingListWithCoupon::new)
-                .toList();
-    }
-
-    private static List<List<BasketCoupon>> generateCombinations(List<Basket> baskets,
-                                                                 List<Coupon> coupons) {
-        return backtrack(baskets, coupons, 0, new ArrayList<>(), new HashSet<>());
-    }
-
-    private static List<List<BasketCoupon>> backtrack(List<Basket> baskets,
-                                                      List<Coupon> coupons,
-                                                      int basketIndex,
-                                                      List<BasketCoupon> currentCombination,
-                                                      Set<Integer> usedCoupons) {
-        if (basketIndex == baskets.size()) {
-            return List.of(new ArrayList<>(currentCombination));
-        }
-
-        Basket currentBasket = baskets.get(basketIndex);
-
-        Stream<List<BasketCoupon>> withoutCouponStream = Stream.of(currentBasket)
-                .map(b -> {
-                    List<BasketCoupon> newCombination = new ArrayList<>(currentCombination);
-                    newCombination.add(new BasketCoupon(b, null));
-                    return backtrack(baskets, coupons, basketIndex + 1, newCombination, new HashSet<>(usedCoupons));
-                })
-                .flatMap(List::stream);
-
-        Stream<List<BasketCoupon>> withCouponStream =
-                IntStream.range(0, coupons.size())
-                        .parallel()
-                        .filter(i -> !usedCoupons.contains(i))
-                        .mapToObj(i -> {
-                            List<BasketCoupon> newCombination = new ArrayList<>(currentCombination);
-                            newCombination.add(new BasketCoupon(currentBasket, coupons.get(i)));
-                            Set<Integer> newUsed = new HashSet<>(usedCoupons);
-                            newUsed.add(i);
-                            return backtrack(baskets, coupons, basketIndex + 1, newCombination, newUsed);
-                        })
-                        .flatMap(List::stream);
-
-        return Stream.concat(withoutCouponStream, withCouponStream).toList();
+        return orders.get(0);
     }
 }
