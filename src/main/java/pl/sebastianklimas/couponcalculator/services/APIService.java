@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class APIService {
-    public List<FullShoppingListWithCoupon> splitLists(List<Product> products, List<Coupon> coupons) {
+//    public List<FullShoppingListWithCoupon> splitLists(List<Product> products, List<Coupon> coupons) {
         /* --- You can increase them to 8 and 4 but calculating will take longer. I don't recommend to increase it further. --- */
 //        final int MAX_SIZE_PRODUCT_BUNCHES = 7;
 //        final int MAX_SIZE_COUPON_BUNCHES = 3;
