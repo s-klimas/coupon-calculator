@@ -1,5 +1,6 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,10 +13,15 @@ import java.util.Objects;
 @AllArgsConstructor
 @Getter
 @Setter
+@Schema(description = "The class containing information about coupon")
 public class Coupon {
+    @Schema(name = "minPrice", example = "10", description = "Minimum total price of products to use the coupon")
     private BigDecimal minPrice;
+    @Schema(name = "maxDiscount", example = "1000", description = "The maximum discount you can get with coupon")
     private BigDecimal maxDiscount;
+    @Schema(name = "percentDiscount", example = "50", description = "Percentage discount on the coupon")
     private int percentDiscount;
+    @Schema(name = "code", example = "Code 1", description = "The code of the coupon")
     private String code;
 
     @Override

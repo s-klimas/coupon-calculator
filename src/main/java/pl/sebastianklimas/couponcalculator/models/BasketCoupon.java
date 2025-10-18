@@ -1,5 +1,6 @@
 package pl.sebastianklimas.couponcalculator.models;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,9 +11,11 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @Getter
 @Setter
+@Schema(description = "A helper class containing a basket with an assigned coupon, and the final sum including the discount")
 public class BasketCoupon {
     private Basket basket;
     private Coupon coupon;
+    @Schema(description = "The final sum of the basket with this coupon")
     private BigDecimal finalSum;
 
     public BasketCoupon(Basket basket) {
