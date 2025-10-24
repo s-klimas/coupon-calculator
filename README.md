@@ -1,6 +1,7 @@
 # 🎟️ Coupon Calculator
 
-> 🧮 Intelligent backend service for optimizing coupon applications, powered by **Spring Boot**, **Java Streams**, **Heuristic Algorithms**, and **Swagger/OpenAPI**.
+> 🧮 Intelligent backend service for optimizing coupon applications, powered by **Spring Boot**, **Java Streams**, *
+*Heuristic Algorithms**, and **Swagger/OpenAPI**.
 
 ---
 
@@ -39,11 +40,13 @@ for larger collections, an optimally good solution</sup></sub>
 ## 💡 Interesting Techniques
 
 - **Bitwise Subset Generation**  
-  The `CombinationGenerator` class uses **bitwise shifts and masks** to generate all possible non-empty subsets of
+  The [CombinationGenerator.java](src/main/java/pl/sebastianklimas/couponcalculator/services/CombinationGenerator.java)
+  class uses **bitwise shifts and masks** to generate all possible non-empty subsets of
   products efficiently — a concise and classic approach to power set generation.
 
 - **Backtracking with Java Streams**  
-  The `CouponOptimizer` employs **recursive backtracking** combined with **parallel Java Streams** (`parallelStream()`)
+  The [CouponOptimizer](src/main/java/pl/sebastianklimas/couponcalculator/services/CouponOptimizer.java) employs *
+  *recursive backtracking** combined with **parallel Java Streams** (`parallelStream()`)
   to test all valid coupon assignments concurrently, optimizing large-scale performance.
 
 - **PriorityQueue for Best Result Tracking**  
@@ -51,11 +54,15 @@ for larger collections, an optimally good solution</sup></sub>
   lowest total-cost order in real time.
 
 - **Immutable Data Models via Lombok**  
-  Models like `Product`, `Coupon`, and `Subset` use Lombok annotations (`@Getter`, `@Setter`, `@NoArgsConstructor`,
+  Models
+  like [Product](src/main/java/pl/sebastianklimas/couponcalculator/models/Product.java), [Coupon](src/main/java/pl/sebastianklimas/couponcalculator/models/Coupon.java),
+  and [Subset](src/main/java/pl/sebastianklimas/couponcalculator/models/Subset.java) use Lombok annotations (`@Getter`,
+  `@Setter`, `@NoArgsConstructor`,
   `@AllArgsConstructor`) to reduce boilerplate and improve readability.
 
 - **Swagger/OpenAPI Documentation**  
-  The REST API is fully documented using **Swagger annotations**, configured in `SwaggerConfig`, enabling live API
+  The REST API is fully documented using **Swagger annotations**, configured
+  in [SwaggerConfig](src/main/java/pl/sebastianklimas/couponcalculator/config/SwaggerConfig.java), enabling live API
   exploration and automatic client generation.
 
 - **Heuristic Optimization for Scalability**  
